@@ -14,3 +14,5 @@ pip install -r requirements.txt
 
 ok there is still some issue, like, you need to download the chromedrive and makesure chrome is up to date,
 i will make the new video tmr
+
+the link : https://googlechromelabs.github.io/chrome-for-testing/
