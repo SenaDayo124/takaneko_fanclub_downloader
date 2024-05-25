@@ -78,30 +78,30 @@ def extract_content(driver):
         return None
 
 def save_content(name, date, title, html_content, full_page_html):
-    # Creating directory structure
     member_folder = os.path.join(os.getcwd(), name)
-    date_folder = os.path.join(member_folder, date.replace(':', '-').replace(' ', '_'))
+    date_folder = datetime.strptime(date, "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d_%H-%M-%S")
+    path = os.path.join(member_folder, date_folder)
     
     if not os.path.exists(member_folder):
         os.makedirs(member_folder)
-    if not os.path.exists(date_folder):
-        os.makedirs(date_folder)
+    if not os.path.exists(path):
+        os.makedirs(path)
     
-    # Save HTML content as Markdown
-    file_path = os.path.join(date_folder, f"{title}.md")
+    file_path = os.path.join(path, 'content.md')
     with open(file_path, 'w', encoding='utf-8') as file:
-        file.write(md(html_content))
+        file.write("# " + title + "\n\n" + md(html_content)) 
     
-    # Download and save images
     soup = BeautifulSoup(full_page_html, 'html.parser')
     for img in soup.find_all('img'):
         img_url = img.get('src')
         if img_url.startswith('http'):
             img_response = requests.get(img_url, stream=True)
             img_name = img_url.split('/')[-1]
-            img_path = os.path.join(date_folder, img_name)
+            img_path = os.path.join(path, img_name)
             with open(img_path, 'wb') as img_file:
                 for chunk in img_response.iter_content(1024):
                     img_file.write(chunk)
+
+    print(f"Content and images saved for {name} on {date}")
 
 start_scraping_after_manual_login()
