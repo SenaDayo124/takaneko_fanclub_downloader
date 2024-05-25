@@ -42,7 +42,7 @@ def start_scraping_after_manual_login():
             if content_data:
                 title, name, date, content = content_data
                 # upload to notion
-                upload_to_notion(title, name, date, content, "secret_ln8heTR06Cis08MeS8LK2hOYZUybvhDK0iRlniyiHQb", "f175f793a2df4704a150b61c1eb675c1")
+                upload_to_notion(title, name, date, content, "token", "id")
                 print("Extracted and uploaded content:", title, name, date)
             driver.back()
             WebDriverWait(driver, 10).until(
