@@ -1,18 +1,23 @@
 # Takaneko Fanclub Downloader
 
-I am so lazy that i dont want to write anything atm.
+### Introduction:
 
-If you want to use, just watch the video first.
+* Using Selenum to enter all the pages and download the content and photos.
 
-how to use:
-https://youtu.be/3jgJ2xTun4w
+### How to Use:
 
-before running the code(i.e. python download.py)
-run: 
+* https://youtu.be/3jgJ2xTun4w
 
+### Requirements:
+
+1. python
+2. requirements.txt
+3. chromedriver
+
+### Something that may helpful for installing
+
+```
 pip install -r requirements.txt
+```
 
-ok there is still some issue, like, you need to download the chromedrive and makesure chrome is up to date,
-i will make the new video tmr
-
-the link : https://googlechromelabs.github.io/chrome-for-testing/
+chromedriver: [https://googlechromelabs.github.io/chrome-for-testing/](https://googlechromelabs.github.io/chrome-for-testing/)
