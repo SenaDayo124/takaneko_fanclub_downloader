@@ -6,7 +6,7 @@
 
 ### How to Use:
 
-* To be updated
+* https://youtu.be/pOQ0nsqV9No
 
 ### Requirements:
 
