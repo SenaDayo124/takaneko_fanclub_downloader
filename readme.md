@@ -14,7 +14,7 @@
 2. requirements.txt
 3. chromedriver
 
-### Something that may helpful for installing
+### Something that maybe helpful for installing
 
 ```
 pip install -r requirements.txt
