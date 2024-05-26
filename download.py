@@ -39,21 +39,43 @@ def start_scraping_after_manual_login():
             link = links[i]
             href = link.get_attribute('href')
             driver.get(href)
-            time.sleep(3)
 
-            content_data = extract_content(driver)
-            if content_data:
-                title, name, date, content = content_data
-                save_content(name, date, title, content, driver.page_source)
-                print("Extracted and saved content:", title, name, date)
-            
-            driver.back()
+            if not content_already_exists(driver):  # Check if content already exists
+                content_data = extract_content(driver)
+                if content_data:
+                    title, name, date, content = content_data
+                    save_content(name, date, title, content, driver.page_source)
+                    print("Extracted and saved content:", title, name, date)
+                driver.back()
+            else:
+                print("Content already exists, skipping...")
+                driver.back()
+                
             WebDriverWait(driver, 10).until(
                 EC.presence_of_all_elements_located((By.CSS_SELECTOR, "a.link"))
             )
 
     driver.quit()
 
+def content_already_exists(driver):
+    title = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "h1.fc-article-contents__title"))
+    ).text
+    date = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "div.fc-article-contents__date"))
+    ).text
+    name = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.XPATH, "//div[contains(@class,'flex column-align-center mt-10') and not(contains(@class,'fc-article-contents__icon'))]"))
+    ).text
+
+    try:
+        date_folder = datetime.strptime(date, "%Y.%m.%d %H:%M").strftime("%Y-%m-%d_%H-%M")
+        member_folder = os.path.join(os.getcwd(), name)
+        path = os.path.join(member_folder, date_folder, 'content.md')
+        return os.path.exists(path)
+    except ValueError as e:
+        print(f"Error parsing date: {e}")
+        return False
 
 def extract_content(driver):
     try:
@@ -79,8 +101,14 @@ def extract_content(driver):
         return None
 
 def save_content(name, date, title, html_content, full_page_html):
+    time.sleep(3)
     member_folder = os.path.join(os.getcwd(), name)
-    date_folder = datetime.strptime(date, "%Y.%m.%d %H:%M").strftime("%Y-%m-%d_%H-%M")
+    try:
+        date_folder = datetime.strptime(date, "%Y.%m.%d %H:%M").strftime("%Y-%m-%d_%H-%M")
+    except ValueError as e:
+        print(f"Error parsing date: {e}")
+        return  
+
     path = os.path.join(member_folder, date_folder)
     
     if not os.path.exists(member_folder):
@@ -90,29 +118,30 @@ def save_content(name, date, title, html_content, full_page_html):
     
     file_path = os.path.join(path, 'content.md')
     with open(file_path, 'w', encoding='utf-8') as file:
-        file.write("# " + title + "\n\n" + md(html_content)) 
-
-    base_url = "https://takanekofc.com/"  
-
+        file.write("# " + title + "\n\n" + html_content)  
+    
     soup = BeautifulSoup(full_page_html, 'html.parser')
+    base_url = 'https://takanekofc.com/'
     for img in soup.find_all('img'):
         img_url = img.get('src')
-        if not img_url.startswith(('http', 'https')):
-            img_url = urljoin(base_url, img_url)  
+        if img_url:
+            if not img_url.startswith(('http', 'https')):
+                img_url = urljoin(base_url, img_url)  
 
-        try:
-            img_response = requests.get(img_url, stream=True)
-            if img_response.status_code == 200:
-                img_name = img_url.split('/')[-1]
-                img_path = os.path.join(path, img_name)
-                with open(img_path, 'wb') as img_file:
-                    for chunk in img_response.iter_content(1024):
-                        img_file.write(chunk)
-            else:
-                print(f"Failed to download {img_url}: Server responded with status code {img_response.status_code}")
-        except Exception as e:
-            print(f"Error downloading {img_url}: {str(e)}")
-
+            try:
+                img_response = requests.get(img_url, stream=True)
+                if img_response.status_code == 200:
+                    img_name = os.path.basename(img_url)
+                    img_path = os.path.join(path, img_name)
+                    with open(img_path, 'wb') as img_file:
+                        for chunk in img_response.iter_content(1024):
+                            img_file.write(chunk)
+                else:
+                    print(f"Failed to download {img_url}: Server responded with status code {img_response.status_code}")
+            except Exception as e:
+                print(f"Error downloading {img_url}: {str(e)}")
+        else:
+            print("Found an image without a src attribute.")
 
     print(f"Content and images saved for {name} on {date}")
 
