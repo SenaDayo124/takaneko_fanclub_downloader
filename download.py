@@ -21,7 +21,7 @@ def start_scraping_after_manual_login():
 
     max_page = int(input("Enter the maximum page number: "))
 
-    for page_number in range(5, max_page + 1):
+    for page_number in range(1, max_page + 1):
         if page_number == 1:
             url = "https://takanekofc.com/#/notification"
         else:
