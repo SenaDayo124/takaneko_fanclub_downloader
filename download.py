@@ -9,6 +9,7 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 from markdownify import markdownify as md
 from urllib.parse import urljoin
+from selenium.common.exceptions import TimeoutException
 
 def start_scraping_after_manual_login():
     driver = webdriver.Chrome()
@@ -20,7 +21,7 @@ def start_scraping_after_manual_login():
 
     max_page = int(input("Enter the maximum page number: "))
 
-    for page_number in range(1, max_page + 1):
+    for page_number in range(5, max_page + 1):
         if page_number == 1:
             url = "https://takanekofc.com/#/notification"
         else:
@@ -40,22 +41,23 @@ def start_scraping_after_manual_login():
             href = link.get_attribute('href')
             driver.get(href)
 
-            if not content_already_exists(driver):  # Check if content already exists
-                content_data = extract_content(driver)
-                if content_data:
-                    title, name, date, content = content_data
-                    save_content(name, date, title, content, driver.page_source)
-                    print("Extracted and saved content:", title, name, date)
-                driver.back()
-            else:
-                print("Content already exists, skipping...")
-                driver.back()
-                
+            try:
+                if not content_already_exists(driver):  # Check if content already exists
+                    content_data = extract_content(driver)
+                    if content_data:
+                        title, name, date, content = content_data
+                        save_content(name, date, title, content, driver.page_source)
+                        print("Extracted and saved content:", title, name, date)
+            except TimeoutException:
+                print("Timeout occurred, skipping content check...")
+            
+            driver.back()
             WebDriverWait(driver, 10).until(
                 EC.presence_of_all_elements_located((By.CSS_SELECTOR, "a.link"))
             )
 
     driver.quit()
+
 
 def content_already_exists(driver):
     title = WebDriverWait(driver, 10).until(
